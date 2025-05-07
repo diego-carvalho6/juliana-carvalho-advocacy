@@ -1,13 +1,24 @@
+"use client"
+
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
 import { MainNav } from "@/components/layout/main-nav"
 import { GavelIcon } from "lucide-react"
 import { LanguageSwitcher } from "@/components/language-switcher"
+import { useEffect, useState } from "react"
+import { createUniversalClient } from "@/lib/supabase/universal-client"
 
-export async function Header() {
-  const supabase = createClient()
-  const { data } = await supabase.auth.getSession()
-  const isLoggedIn = !!data.session
+export function Header() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const supabase = createUniversalClient()
+
+  useEffect(() => {
+    async function checkSession() {
+      const { data } = await supabase.auth.getSession()
+      setIsLoggedIn(!!data.session)
+    }
+
+    checkSession()
+  }, [])
 
   return (
     <header className="border-b bg-primary-massala text-white">

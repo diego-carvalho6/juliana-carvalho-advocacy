@@ -17,11 +17,6 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
-  // Configuração i18n nativa do Next.js
-  i18n: {
-    defaultLocale: 'pt',
-    locales: ['pt', 'en'],
-  },
   // Garantir que os arquivos estáticos sejam servidos corretamente
   async rewrites() {
     return [
@@ -33,7 +28,6 @@ const nextConfig = {
   },
   // Configuração para permitir Server Components no App Router
   experimental: {
-    appDir: true,
     serverComponentsExternalPackages: ['@supabase/auth-helpers-nextjs'],
   },
 };

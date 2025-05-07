@@ -31,11 +31,6 @@ function getLocale(request: NextRequest) {
 }
 
 export async function middleware(req: NextRequest) {
-  // Ignorar rotas da pasta pages/
-  if (req.nextUrl.pathname.startsWith("/pages/")) {
-    return NextResponse.next()
-  }
-
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req, res })
 
@@ -86,8 +81,8 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    // Excluir arquivos estáticos e rotas da pasta pages/
-    "/((?!_next/static|_next/image|favicon.ico|pages/).*)",
+    // Excluir arquivos estáticos
+    "/((?!_next/static|_next/image|favicon.ico).*)",
     "/admin/:path*",
     "/dashboard/:path*",
     "/cases/:path*",

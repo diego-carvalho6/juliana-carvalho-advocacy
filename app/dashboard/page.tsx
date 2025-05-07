@@ -1,32 +1,61 @@
-import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createUniversalClient } from "@/lib/supabase/universal-client"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpenIcon, FolderIcon } from "lucide-react"
 
-export default async function DashboardPage() {
-  const supabase = createClient()
+export default function DashboardPage() {
+  const router = useRouter()
+  const [session, setSession] = useState<any>(null)
+  const [articlesCount, setArticlesCount] = useState<number>(0)
+  const [casesCount, setCasesCount] = useState<number>(0)
+  const [loading, setLoading] = useState(true)
+  const supabase = createUniversalClient()
 
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        // Verificar se o usuário está autenticado
+        const { data } = await supabase.auth.getSession()
 
-  if (!session) {
-    redirect("/login")
+        if (!data.session) {
+          router.push("/login")
+          return
+        }
+
+        setSession(data.session)
+
+        // Buscar contagem de artigos do usuário
+        const { count: articlesCount } = await supabase
+          .from("articles")
+          .select("*", { count: "exact", head: true })
+          .eq("author_id", data.session.user.id)
+
+        // Buscar contagem de processos do usuário
+        const { count: casesCount } = await supabase
+          .from("cases")
+          .select("*", { count: "exact", head: true })
+          .eq("user_id", data.session.user.id)
+
+        setArticlesCount(articlesCount || 0)
+        setCasesCount(casesCount || 0)
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [router, supabase])
+
+  if (loading) {
+    return <div className="container py-10">Carregando...</div>
   }
-
-  // Buscar contagem de artigos do usuário
-  const { count: articlesCount } = await supabase
-    .from("articles")
-    .select("*", { count: "exact", head: true })
-    .eq("author_id", session.user.id)
-
-  // Buscar contagem de processos do usuário
-  const { count: casesCount } = await supabase
-    .from("cases")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", session.user.id)
 
   return (
     <div className="container py-10">
@@ -39,7 +68,7 @@ export default async function DashboardPage() {
             <BookOpenIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{articlesCount || 0}</div>
+            <div className="text-2xl font-bold">{articlesCount}</div>
             <p className="text-xs text-muted-foreground">Artigos publicados</p>
             <div className="mt-4">
               <Link href="/articles/new">
@@ -55,7 +84,7 @@ export default async function DashboardPage() {
             <FolderIcon className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{casesCount || 0}</div>
+            <div className="text-2xl font-bold">{casesCount}</div>
             <p className="text-xs text-muted-foreground">Processos cadastrados</p>
             <div className="mt-4">
               <Link href="/cases/new">
