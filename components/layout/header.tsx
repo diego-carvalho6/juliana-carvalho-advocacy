@@ -1,15 +1,16 @@
 "use client"
 
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { MainNav } from "@/components/layout/main-nav"
 import { GavelIcon } from "lucide-react"
 import { LanguageSwitcher } from "@/components/language-switcher"
-import { useEffect, useState } from "react"
-import { createUniversalClient } from "@/lib/supabase/universal-client"
+import type { Database } from "@/lib/database.types"
 
 export function Header() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
-  const supabase = createUniversalClient()
+  const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
     async function checkSession() {
@@ -18,7 +19,7 @@ export function Header() {
     }
 
     checkSession()
-  }, [])
+  }, [supabase])
 
   return (
     <header className="border-b bg-primary-massala text-white">

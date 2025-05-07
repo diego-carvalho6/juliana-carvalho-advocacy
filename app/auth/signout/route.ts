@@ -1,12 +1,11 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
+import type { Database } from "@/lib/database.types"
 
-export async function POST() {
-  const cookieStore = cookies()
-  const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
-
+export async function POST(request: NextRequest) {
+  const supabase = createClientComponentClient<Database>()
   await supabase.auth.signOut()
 
-  return NextResponse.redirect(new URL("/", process.env.NEXT_PUBLIC_SITE_URL))
+  return NextResponse.redirect(new URL("/", request.url))
 }

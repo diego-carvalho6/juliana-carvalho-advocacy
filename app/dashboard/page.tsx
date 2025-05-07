@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { createUniversalClient } from "@/lib/supabase/universal-client"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { BookOpenIcon, FolderIcon } from "lucide-react"
+import type { Database } from "@/lib/database.types"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -14,7 +15,7 @@ export default function DashboardPage() {
   const [articlesCount, setArticlesCount] = useState<number>(0)
   const [casesCount, setCasesCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
-  const supabase = createUniversalClient()
+  const supabase = createClientComponentClient<Database>()
 
   useEffect(() => {
     async function fetchData() {

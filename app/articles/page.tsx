@@ -1,24 +1,49 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import Link from "next/link"
-import { createClient } from "@/lib/supabase/server"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { formatDate } from "@/lib/utils"
+import type { Database } from "@/lib/database.types"
 
-export default async function ArticlesPage() {
-  const supabase = createClient()
+export default function ArticlesPage() {
+  const [articles, setArticles] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient<Database>()
 
-  // Buscar todos os artigos
-  const { data: articles } = await supabase
-    .from("articles")
-    .select(`
-      id,
-      title,
-      content,
-      created_at,
-      author_id,
-      profiles:author_id (email)
-    `)
-    .order("created_at", { ascending: false })
+  useEffect(() => {
+    async function fetchArticles() {
+      try {
+        // Buscar todos os artigos
+        const { data, error } = await supabase
+          .from("articles")
+          .select(`
+            id,
+            title,
+            content,
+            created_at,
+            author_id,
+            profiles:author_id (email)
+          `)
+          .order("created_at", { ascending: false })
+
+        if (error) throw error
+        setArticles(data || [])
+      } catch (error) {
+        console.error("Erro ao buscar artigos:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchArticles()
+  }, [supabase])
+
+  if (loading) {
+    return <div className="container py-10 flex justify-center">Carregando...</div>
+  }
 
   return (
     <div className="container py-10">

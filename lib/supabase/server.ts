@@ -1,9 +1,11 @@
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers" // Este é o problema
 import type { Database } from "@/lib/database.types"
+import { cookies as nextCookies } from "next/headers"
 
 // Criando um cliente Supabase para componentes do lado do servidor
+// Esta função só deve ser usada em componentes do servidor no App Router
 export const createClient = () => {
-  const cookieStore = cookies()
-  return createServerComponentClient<Database>({ cookies: () => cookieStore })
+  return createServerComponentClient<Database>({
+    cookies: () => nextCookies(),
+  })
 }

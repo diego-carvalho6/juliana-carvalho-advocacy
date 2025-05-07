@@ -1,41 +1,68 @@
-import { notFound } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
-import { Button } from "@/components/ui/button"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter, useParams } from "next/navigation"
 import Link from "next/link"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { Button } from "@/components/ui/button"
 import { formatDate } from "@/lib/utils"
+import type { Database } from "@/lib/database.types"
 
-interface ArticlePageProps {
-  params: {
-    id: string
+export default function ArticlePage() {
+  const router = useRouter()
+  const params = useParams()
+  const [article, setArticle] = useState<any>(null)
+  const [isAuthor, setIsAuthor] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const supabase = createClientComponentClient<Database>()
+
+  useEffect(() => {
+    async function fetchArticle() {
+      try {
+        if (!params.id) return
+
+        // Buscar o artigo pelo ID
+        const { data: article, error } = await supabase
+          .from("articles")
+          .select(`
+            id,
+            title,
+            content,
+            created_at,
+            author_id,
+            profiles:author_id (email)
+          `)
+          .eq("id", params.id)
+          .single()
+
+        if (error || !article) {
+          router.push("/not-found")
+          return
+        }
+
+        setArticle(article)
+
+        // Verificar se o usuário atual é o autor
+        const { data: session } = await supabase.auth.getSession()
+        setIsAuthor(session?.session?.user.id === article.author_id)
+      } catch (error) {
+        console.error("Erro ao buscar artigo:", error)
+        router.push("/not-found")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchArticle()
+  }, [params.id, router, supabase])
+
+  if (loading) {
+    return <div className="container py-10 flex justify-center">Carregando...</div>
   }
-}
-
-export default async function ArticlePage({ params }: ArticlePageProps) {
-  const supabase = createClient()
-
-  // Buscar o artigo pelo ID
-  const { data: article } = await supabase
-    .from("articles")
-    .select(`
-      id,
-      title,
-      content,
-      created_at,
-      author_id,
-      profiles:author_id (email)
-    `)
-    .eq("id", params.id)
-    .single()
 
   if (!article) {
-    notFound()
+    return null
   }
-
-  // Verificar se o usuário atual é o autor
-  const {
-    data: { session },
-  } = await supabase.auth.getSession()
-  const isAuthor = session?.user.id === article.author_id
 
   return (
     <div className="container py-10">
@@ -57,7 +84,7 @@ export default async function ArticlePage({ params }: ArticlePageProps) {
           </div>
 
           <div className="prose max-w-none">
-            {article.content.split("\n").map((paragraph, index) => (
+            {article.content.split("\n").map((paragraph: string, index: number) => (
               <p key={index} className="mb-4">
                 {paragraph}
               </p>

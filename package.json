@@ -62,11 +62,10 @@
     "@supabase/auth-helpers-nextjs": "latest",
     "@tanstack/react-table": "latest",
     "js-cookie": "latest",
-    "url": "latest",
-    "path": "latest",
     "@formatjs/intl-localematcher": "latest",
     "negotiator": "latest",
-    "fs": "latest"
+    "fs": "latest",
+    "path": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",
